@@ -134,7 +134,9 @@ DATABASE_URL=postgresql+psycopg://postgres:SUA_SENHA@127.0.0.1:55432/rag
 ```
 
 O Docker Compose publica o PostgreSQL apenas em `127.0.0.1:55432`. O arquivo
-`.env` é ignorado pelo Git.
+`.env` é ignorado pelo Git. `GOOGLE_EMBEDDING_MODEL` deve ser o mesmo na ingestão
+e na busca. `GOOGLE_CHAT_MODEL` seleciona o modelo que responde às perguntas;
+o exemplo usa `gemini-3.5-flash`.
 
 ## VirtualEnv para Python
 
@@ -182,6 +184,9 @@ o mesmo PDF atualiza os trechos identificados, sem duplicá-los.
 ```
 python src/chat.py
 ```
+
+Digite perguntas sobre o PDF e use `sair` para encerrar. A busca recupera até
+10 trechos e os envia ao modelo como contexto para cada pergunta.
 
 ## Entregável
 
