@@ -138,13 +138,15 @@ O Docker Compose publica o PostgreSQL apenas em `127.0.0.1:55432`. O arquivo
 e na busca. `GOOGLE_CHAT_MODEL` seleciona o modelo que responde às perguntas;
 o exemplo usa `gemini-3.5-flash`.
 
-## VirtualEnv para Python
+## Ambiente Python
 
-Crie e ative um ambiente virtual antes de instalar dependências:
+Use Python 3.12 (versão validada neste projeto). Crie e ative o ambiente virtual,
+depois instale as dependências:
 
 ```
-python3 -m venv venv
+python3.12 -m venv venv
 source venv/bin/activate
+python -m pip install -r requirements.txt
 ```
 
 ## Ordem de execução
