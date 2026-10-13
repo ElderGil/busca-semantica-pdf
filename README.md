@@ -1,5 +1,7 @@
 # Ingestão e Busca Semântica com LangChain e Postgres
 
+Execução do desafio **Ingestão e Busca Semântica com LangChain e Postgres** do MBA em Engenharia de Software com IA da Full Cycle.
+
 ## Objetivo
 
 Você deve entregar um software capaz de:
@@ -145,19 +147,33 @@ source venv/bin/activate
 
 ## Ordem de execução
 
-1. Subir o banco de dados:
+1. No macOS, se o Docker usa Colima, iniciar o runtime:
+
+```
+colima start
+```
+
+2. Subir o banco de dados e criar a extensão `vector`:
 
 ```
 docker compose up -d
 ```
 
-2. Executar ingestão do PDF:
+O serviço `bootstrap_vector_ext` termina com código 0 após criar a extensão;
+`postgres` deve permanecer saudável. Para conferir:
+
+```
+docker compose ps --all
+docker compose exec -T postgres psql -U postgres -d rag -Atc "SELECT extname, extversion FROM pg_extension WHERE extname = 'vector';"
+```
+
+3. Executar ingestão do PDF:
 
 ```
 python src/ingest.py
 ```
 
-3. Rodar o chat:
+4. Rodar o chat:
 
 ```
 python src/chat.py

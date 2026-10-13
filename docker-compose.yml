@@ -24,10 +24,13 @@ services:
         condition: service_healthy
     environment:
       PGPASSWORD: ${POSTGRES_PASSWORD:?Defina POSTGRES_PASSWORD no .env}
-    entrypoint: ["/bin/sh", "-c"]
-    command: >
-      psql "postgresql://postgres@postgres:5432/rag" -v ON_ERROR_STOP=1
-      -c "CREATE EXTENSION IF NOT EXISTS vector;"
+    entrypoint: ["psql"]
+    command:
+      - postgresql://postgres@postgres:5432/rag
+      - -v
+      - ON_ERROR_STOP=1
+      - -c
+      - CREATE EXTENSION IF NOT EXISTS vector;
     restart: "no"
 
 volumes:
