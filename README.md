@@ -121,6 +121,19 @@ Faça um fork do repositório para utilizar a estrutura abaixo: https://github.c
 └── README.md             # Instruções de execução
 ```
 
+## Configuração local
+
+Antes de executar, copie `.env.example` para `.env`. Para usar Gemini, preencha
+`GOOGLE_API_KEY`. Defina também `POSTGRES_PASSWORD` com uma senha local e use a
+mesma senha em `DATABASE_URL`, por exemplo:
+
+```text
+DATABASE_URL=postgresql+psycopg://postgres:SUA_SENHA@127.0.0.1:55432/rag
+```
+
+O Docker Compose publica o PostgreSQL apenas em `127.0.0.1:55432`. O arquivo
+`.env` é ignorado pelo Git.
+
 ## VirtualEnv para Python
 
 Crie e ative um ambiente virtual antes de instalar dependências:
