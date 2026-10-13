@@ -173,6 +173,10 @@ docker compose exec -T postgres psql -U postgres -d rag -Atc "SELECT extname, ex
 python src/ingest.py
 ```
 
+Com Gemini, a ingestão gera um embedding por trecho usando chamadas individuais
+à API Google. Isso permite usar chaves sem acesso ao endpoint em lote. Reexecutar
+o mesmo PDF atualiza os trechos identificados, sem duplicá-los.
+
 4. Rodar o chat:
 
 ```
