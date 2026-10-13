@@ -15,7 +15,7 @@ load_dotenv(PROJECT_ROOT / ".env")
 
 class IndividualGoogleEmbeddings(GoogleGenerativeAIEmbeddings):
     def embed_documents(self, texts: list[str]) -> list[list[float]]:
-        # O endpoint em lote pode não estar disponível para a chave gratuita.
+        # Evita depender do endpoint em lote.
         vectors = []
         for index, text in enumerate(texts, start=1):
             vectors.append(self.embed_query(text, task_type="RETRIEVAL_DOCUMENT"))

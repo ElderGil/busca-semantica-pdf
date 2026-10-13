@@ -1,6 +1,6 @@
 # Ingestão e Busca Semântica com LangChain e Postgres
 
-Execução do desafio **Ingestão e Busca Semântica com LangChain e Postgres** do MBA em Engenharia de Software com IA da Full Cycle.
+Implementação do desafio **Ingestão e Busca Semântica com LangChain e Postgres** do MBA em Engenharia de Software com IA da Full Cycle.
 
 ## Objetivo
 
@@ -123,25 +123,22 @@ Faça um fork do repositório para utilizar a estrutura abaixo: https://github.c
 └── README.md             # Instruções de execução
 ```
 
-## Configuração local
+## Configuração
 
-Antes de executar, copie `.env.example` para `.env`. Para usar Gemini, preencha
-`GOOGLE_API_KEY`. Defina também `POSTGRES_PASSWORD` com uma senha local e use a
-mesma senha em `DATABASE_URL`, por exemplo:
+Copie `.env.example` para `.env`. Preencha `GOOGLE_API_KEY` e
+`POSTGRES_PASSWORD`. Use a mesma senha em `DATABASE_URL`:
 
 ```text
 DATABASE_URL=postgresql+psycopg://postgres:SUA_SENHA@127.0.0.1:55432/rag
 ```
 
-O Docker Compose publica o PostgreSQL apenas em `127.0.0.1:55432`. O arquivo
-`.env` é ignorado pelo Git. `GOOGLE_EMBEDDING_MODEL` deve ser o mesmo na ingestão
-e na busca. `GOOGLE_CHAT_MODEL` seleciona o modelo que responde às perguntas;
-o exemplo usa `gemini-3.5-flash`.
+O PostgreSQL fica disponível em `127.0.0.1:55432`. O `.env` não entra no Git.
+Mantenha `GOOGLE_EMBEDDING_MODEL` igual na ingestão e na busca. O modelo de
+resposta vem de `GOOGLE_CHAT_MODEL`; o exemplo usa `gemini-3.5-flash`.
 
 ## Ambiente Python
 
-Use Python 3.12 (versão validada neste projeto). Crie e ative o ambiente virtual,
-depois instale as dependências:
+Validado com Python 3.12:
 
 ```
 python3.12 -m venv venv
@@ -149,46 +146,45 @@ source venv/bin/activate
 python -m pip install -r requirements.txt
 ```
 
-## Ordem de execução
+## Execução
 
-1. No macOS, se o Docker usa Colima, iniciar o runtime:
+Se você usa Colima no macOS, inicie-o antes do Compose:
 
 ```
 colima start
 ```
 
-2. Subir o banco de dados e criar a extensão `vector`:
+1. Inicie o PostgreSQL:
 
 ```
 docker compose up -d
 ```
 
-O serviço `bootstrap_vector_ext` termina com código 0 após criar a extensão;
-`postgres` deve permanecer saudável. Para conferir:
+O serviço `bootstrap_vector_ext` cria a extensão `vector` e termina com código 0.
+Confira se o PostgreSQL está saudável e se a extensão foi criada:
 
 ```
 docker compose ps --all
 docker compose exec -T postgres psql -U postgres -d rag -Atc "SELECT extname, extversion FROM pg_extension WHERE extname = 'vector';"
 ```
 
-3. Executar ingestão do PDF:
+2. Ingira o PDF:
 
 ```
 python src/ingest.py
 ```
 
-Com Gemini, a ingestão gera um embedding por trecho usando chamadas individuais
-à API Google. Isso permite usar chaves sem acesso ao endpoint em lote. Reexecutar
-o mesmo PDF atualiza os trechos identificados, sem duplicá-los.
+A ingestão faz uma chamada de embedding por trecho. Reexecutar o mesmo PDF
+atualiza os registros, sem duplicá-los.
 
-4. Rodar o chat:
+3. Inicie o chat:
 
 ```
 python src/chat.py
 ```
 
-Digite perguntas sobre o PDF e use `sair` para encerrar. A busca recupera até
-10 trechos e os envia ao modelo como contexto para cada pergunta.
+Pergunte sobre o PDF. Digite `sair` para encerrar. A cada pergunta, a busca
+recupera até 10 trechos para compor o contexto da resposta.
 
 ## Entregável
 
