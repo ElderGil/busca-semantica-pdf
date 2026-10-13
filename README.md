@@ -134,7 +134,7 @@ DATABASE_URL=postgresql+psycopg://postgres:SUA_SENHA@127.0.0.1:55432/rag
 
 O PostgreSQL fica disponível em `127.0.0.1:55432`. O `.env` não entra no Git.
 Mantenha `GOOGLE_EMBEDDING_MODEL` igual na ingestão e na busca. O modelo de
-resposta vem de `GOOGLE_CHAT_MODEL`; o exemplo usa `gemini-3.5-flash`.
+resposta vem de `GOOGLE_CHAT_MODEL`; o exemplo usa `gemini-3.6-flash`.
 
 Cada pessoa deve usar sua própria chave. A cota gratuita do Gemini é aplicada
 ao projeto Google dessa chave, não ao repositório. Se a API retornar `429` por

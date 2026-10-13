@@ -60,7 +60,6 @@ def search_prompt():
     prompt = PromptTemplate.from_template(PROMPT_TEMPLATE)
     model = ChatGoogleGenerativeAI(
         model=required_env("GOOGLE_CHAT_MODEL"),
-        temperature=0,
         max_output_tokens=2048,
     )
 
@@ -78,7 +77,7 @@ def search_prompt():
         )
         response = model.invoke(
             prompt.format(contexto=context, pergunta=question),
-            timeout=15,
+            timeout=60,
             max_retries=2,
         )
         return str(response.content).strip()
