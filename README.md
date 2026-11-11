@@ -2,6 +2,91 @@
 
 Implementação do desafio **Ingestão e Busca Semântica com LangChain e Postgres** do MBA em Engenharia de Software com IA da Full Cycle.
 
+## Minha implementação
+
+CLI em Python que responde perguntas usando só o conteúdo de um PDF: ingestão em Postgres com pgVector e busca semântica com Gemini. As decisões que valem registro:
+
+- **Ingestão que pode rodar de novo.** Cada trecho recebe um ID determinístico (UUID v5 de coleção, arquivo e posição). Reexecutar o mesmo PDF atualiza os registros em vez de duplicá-los.
+- **Um embedding por trecho.** A classe `IndividualGoogleEmbeddings` chama a API trecho a trecho, sem depender do endpoint em lote, e mostra o progresso a cada 10 trechos.
+- **Tipos de tarefa separados.** Os trechos são embedados como `RETRIEVAL_DOCUMENT` e a pergunta como `RETRIEVAL_QUERY`, que é o par recomendado para busca.
+- **Chunks de 1000 caracteres com overlap de 150**, guardando o índice de início e a página de origem. O contexto enviado ao modelo traz `[Página N]` antes de cada trecho.
+- **Resposta presa ao contexto.** Os 10 trechos mais próximos (`k=10`) entram no prompt do enunciado; fora do contexto, a resposta é a frase fixa "Não tenho informações necessárias para responder sua pergunta."
+- **Falha explícita.** Variáveis de ambiente obrigatórias são validadas antes de qualquer chamada, e a busca sem trechos ingeridos manda rodar a ingestão. O modelo de chat tem timeout de 60 s e 2 tentativas.
+- **Banco só local.** O Postgres sobe em `127.0.0.1:55432`, e um serviço auxiliar do Compose cria a extensão `vector` e termina.
+
+Código em `src/`: `ingest.py` (ingestão), `search.py` (busca e prompt) e `chat.py` (CLI).
+
+## Configuração
+
+Copie `.env.example` para `.env`. Preencha `GOOGLE_API_KEY` e
+`POSTGRES_PASSWORD`. Use a mesma senha em `DATABASE_URL`:
+
+```text
+DATABASE_URL=postgresql+psycopg://postgres:SUA_SENHA@127.0.0.1:55432/rag
+```
+
+O PostgreSQL fica disponível em `127.0.0.1:55432`. O `.env` não entra no Git.
+Mantenha `GOOGLE_EMBEDDING_MODEL` igual na ingestão e na busca. O modelo de
+resposta vem de `GOOGLE_CHAT_MODEL`; o exemplo usa `gemini-3.6-flash`.
+
+Cada pessoa deve usar sua própria chave. A cota gratuita do Gemini é aplicada
+ao projeto Google dessa chave, não ao repositório. Se a API retornar `429` por
+limite diário, aguarde a renovação da cota. Consulte os
+[limites da API](https://ai.google.dev/gemini-api/docs/rate-limits).
+
+## Ambiente Python
+
+Validado com Python 3.12:
+
+```
+python3.12 -m venv venv
+source venv/bin/activate
+python -m pip install -r requirements.txt
+```
+
+## Execução
+
+Se você usa Colima no macOS, inicie-o antes do Compose:
+
+```
+colima start
+```
+
+1. Inicie o PostgreSQL:
+
+```
+docker compose up -d
+```
+
+O serviço `bootstrap_vector_ext` cria a extensão `vector` e termina com código 0.
+Confira se o PostgreSQL está saudável e se a extensão foi criada:
+
+```
+docker compose ps --all
+docker compose exec -T postgres psql -U postgres -d rag -Atc "SELECT extname, extversion FROM pg_extension WHERE extname = 'vector';"
+```
+
+2. Ingira o PDF:
+
+```
+python src/ingest.py
+```
+
+A ingestão faz uma chamada de embedding por trecho. Reexecutar o mesmo PDF
+atualiza os registros, sem duplicá-los.
+
+3. Inicie o chat:
+
+```
+python src/chat.py
+```
+
+Pergunte sobre o PDF. Digite `sair` para encerrar. A cada pergunta, a busca
+recupera até 10 trechos para compor o contexto da resposta.
+
+<details>
+<summary>Enunciado do desafio (MBA Full Cycle)</summary>
+
 ## Objetivo
 
 Você deve entregar um software capaz de:
@@ -123,74 +208,8 @@ Faça um fork do repositório para utilizar a estrutura abaixo: https://github.c
 └── README.md             # Instruções de execução
 ```
 
-## Configuração
-
-Copie `.env.example` para `.env`. Preencha `GOOGLE_API_KEY` e
-`POSTGRES_PASSWORD`. Use a mesma senha em `DATABASE_URL`:
-
-```text
-DATABASE_URL=postgresql+psycopg://postgres:SUA_SENHA@127.0.0.1:55432/rag
-```
-
-O PostgreSQL fica disponível em `127.0.0.1:55432`. O `.env` não entra no Git.
-Mantenha `GOOGLE_EMBEDDING_MODEL` igual na ingestão e na busca. O modelo de
-resposta vem de `GOOGLE_CHAT_MODEL`; o exemplo usa `gemini-3.6-flash`.
-
-Cada pessoa deve usar sua própria chave. A cota gratuita do Gemini é aplicada
-ao projeto Google dessa chave, não ao repositório. Se a API retornar `429` por
-limite diário, aguarde a renovação da cota. Consulte os
-[limites da API](https://ai.google.dev/gemini-api/docs/rate-limits).
-
-## Ambiente Python
-
-Validado com Python 3.12:
-
-```
-python3.12 -m venv venv
-source venv/bin/activate
-python -m pip install -r requirements.txt
-```
-
-## Execução
-
-Se você usa Colima no macOS, inicie-o antes do Compose:
-
-```
-colima start
-```
-
-1. Inicie o PostgreSQL:
-
-```
-docker compose up -d
-```
-
-O serviço `bootstrap_vector_ext` cria a extensão `vector` e termina com código 0.
-Confira se o PostgreSQL está saudável e se a extensão foi criada:
-
-```
-docker compose ps --all
-docker compose exec -T postgres psql -U postgres -d rag -Atc "SELECT extname, extversion FROM pg_extension WHERE extname = 'vector';"
-```
-
-2. Ingira o PDF:
-
-```
-python src/ingest.py
-```
-
-A ingestão faz uma chamada de embedding por trecho. Reexecutar o mesmo PDF
-atualiza os registros, sem duplicá-los.
-
-3. Inicie o chat:
-
-```
-python src/chat.py
-```
-
-Pergunte sobre o PDF. Digite `sair` para encerrar. A cada pergunta, a busca
-recupera até 10 trechos para compor o contexto da resposta.
-
 ## Entregável
 
 Repositório público no GitHub contendo todo o código-fonte e README com instruções claras de execução do projeto.
+
+</details>
